@@ -291,13 +291,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _boidPrefab: {fileID: 3651439099085944712, guid: a524962e75ada0444ae080885dadefc5, type: 3}
   _numberOfBoids: 4000
-  width: 1000
-  height: 1000
-  AvoidanceDistance: 20
+  AreaSize: {x: 1920, y: 1080}
+  BorderSightDistance: 200
+  BorderAvoidanceFactor: 2
+  MaximumVelocity: 20
+  MinimumVelocity: 10
+  AvoidanceDistance: 30
   SightDistance: 75
-  alignmentFactor: 0
-  cohesionFactor: 0
-  separationFactor: 0.05
+  CohesionFactor: 2
+  SeparationFactor: 5
+  AlignmentFactor: 1
 --- !u!1 &657881258
 GameObject:
   m_ObjectHideFlags: 0

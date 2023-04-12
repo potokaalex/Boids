@@ -1,8 +1,8 @@
-﻿using Unity.Burst;
+﻿using System.Runtime.CompilerServices;
 using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
+using Unity.Burst;
 using UnityEngine;
+using Unity.Jobs;
 
 [BurstCompile]
 public struct AccelerationJob : IJobParallelFor
@@ -14,10 +14,11 @@ public struct AccelerationJob : IJobParallelFor
     public float AvoidanceDistance;
     public float SightDistance;
 
-    public float alignmentFactor;//
-    public float cohesionFactor;//
-    public float separationFactor;//
+    public float CohesionFactor;
+    public float SeparationFactor;
+    public float AlignmentFactor;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Execute(int index)
         => Accelerations[index] = GetAcceleration(index);
 
@@ -26,9 +27,8 @@ public struct AccelerationJob : IJobParallelFor
         var averagePosition = Vector2.zero;
         var averageVelocity = Vector2.zero;
         var avarageDirection = Vector2.zero;
-        var numberOfNeighbors = 0;
-
         var targetPosition = Positions[index];
+        var numberOfNeighbors = 0;
 
         for (var i = 0; i < Positions.Length; i++)
         {
@@ -36,12 +36,13 @@ public struct AccelerationJob : IJobParallelFor
                 continue;
 
             var otherPosition = Positions[i];
+            var otherVelocity = Velocities[i];
             var distance = Vector2.Distance(targetPosition, otherPosition);
 
             if (distance < SightDistance)
             {
                 averagePosition += otherPosition;
-                averageVelocity += Velocities[i];
+                averageVelocity += otherVelocity;
                 numberOfNeighbors += 1;
             }
 
@@ -52,11 +53,19 @@ public struct AccelerationJob : IJobParallelFor
         if (numberOfNeighbors != 0)
         {
             averagePosition /= numberOfNeighbors;
-            averageVelocity /= numberOfNeighbors;
+            averagePosition -= targetPosition;
         }
 
-        return averagePosition * alignmentFactor + 
-            averageVelocity * cohesionFactor + 
-            avarageDirection * separationFactor;
+        return GetNormalized(averagePosition) * CohesionFactor +
+            GetNormalized(avarageDirection) * SeparationFactor +
+            GetNormalized(averageVelocity) * AlignmentFactor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector2 GetNormalized(Vector2 vector)
+    {
+        var magnitude = vector.magnitude;
+
+        return magnitude != 0 ? vector / magnitude : Vector2.zero;
     }
 }

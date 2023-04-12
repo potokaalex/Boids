@@ -14,15 +14,20 @@ public class Pure_Boids : MonoBehaviour
 {
     [SerializeField] private GameObject _boidPrefab;
     [SerializeField] private int _numberOfBoids;
-    public int width = 150;
-    public int height = 150;
+
+    public Vector2 AreaSize;
+    public float BorderSightDistance = 150;
+    public float BorderAvoidanceFactor = 1;
+
+    public float MaximumVelocity = 15;
+    public float MinimumVelocity = 10;
 
     public float AvoidanceDistance = 20;
     public float SightDistance = 75;
 
-    public float alignmentFactor = 0.005f; // adjust velocity by this %
-    public float cohesionFactor = 0.05f; // Adjust by this % of average velocity
-    public float separationFactor = 0.05f; // Adjust velocity by this %
+    public float CohesionFactor = 1;
+    public float SeparationFactor = 5;
+    public float AlignmentFactor = 1;
 
     //public const int HistorySize = 100;
     //public Queue<Vector2> History;
@@ -54,38 +59,39 @@ public class Pure_Boids : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var velocityJob = new AccelerationJob()
+        var accelerationJob = new AccelerationJob()
         {
             Positions = _positions,
             Velocities = _velocities,
             Accelerations = _accelerations,
             AvoidanceDistance = AvoidanceDistance,
             SightDistance = SightDistance,
-            alignmentFactor = alignmentFactor,
-            cohesionFactor = cohesionFactor,
-            separationFactor = separationFactor,
+            CohesionFactor = CohesionFactor,
+            SeparationFactor = SeparationFactor,
+            AlignmentFactor = AlignmentFactor,
         };
-        var boundsJob = new BoundsJob()
+        var velocityJob = new VelocityJob()
         {
+            Accelerations = _accelerations,
             Positions = _positions,
             Velocities = _velocities,
-            VelocityLimit = 15,
+            AreaSize = AreaSize,
+            BorderSightDistance = BorderSightDistance,
+            BorderAvoidanceFactor = BorderAvoidanceFactor,
+            MaximumVelocity = MaximumVelocity,
+            MinimumVelocity = MinimumVelocity,
         };
         var moveJob = new MoveJob()
         {
-            Positions = _positions,
             Velocities = _velocities,
-            Accelerations = _accelerations,
+            Positions = _positions,
         };
 
-        var handle = moveJob.Schedule(_transforms,
-            boundsJob.Schedule(_numberOfBoids, 0,
-            velocityJob.Schedule(_numberOfBoids, 0)));
+        var accelerationJobHandle = accelerationJob.Schedule(_numberOfBoids, 0);
+        var velocityJobHandle = velocityJob.Schedule(_numberOfBoids, 0, accelerationJobHandle);
+        var moveJobHandle = moveJob.Schedule(_transforms, velocityJobHandle);
 
-        //var accelerationHandle = accelerationJob.Schedule(_numberOfEntities, 0, boundsHandle);
-        //var moveHandle = moveJob.Schedule(_transformAccessArray, accelerationHandle);
-
-        handle.Complete();
+        moveJobHandle.Complete();
     }
 
     private void OnDestroy()
@@ -100,8 +106,8 @@ public class Pure_Boids : MonoBehaviour
     {
         var position = Vector2.zero;
 
-        position.x = Random.Range(0, width + 1);
-        position.y = Random.Range(0, height + 1);
+        position.x = Random.Range(0, AreaSize.x + 1);
+        position.y = Random.Range(0, AreaSize.y + 1);
 
         return position;
     }
@@ -110,8 +116,8 @@ public class Pure_Boids : MonoBehaviour
     {
         var velocity = Vector2.zero;
 
-        velocity.x = Random.Range(0, 100) - 5;
-        velocity.y = Random.Range(0, 100) - 5;
+        velocity.x = Random.Range(MinimumVelocity, MaximumVelocity);
+        velocity.y = Random.Range(MinimumVelocity, MaximumVelocity);
 
         return velocity;
     }
@@ -122,11 +128,3 @@ public struct Boid
     public Vector2 Position;
     public Vector2 Velocity;
 }
-
-/*
-—плоченность Ч необходимо найти центр масс (среднее арифметическое координат всех юнитов) и определить вектор, направленный от текущего юнита в центра масс.
-–азделение Ч нужно определить среднее направление от всех ближайших юнитов.
-¬ыравнивание скоростей Ч необходимо найти среднюю скорость всех юнитов.
-ƒвижение к цели Ч вектор, направленный от юнита в сторону цели.
-»збегание преп€тствий Ч совпадает со вторым, за исключением того что направление нужно искать в сторону от ближайших преп€тствий.
-*/

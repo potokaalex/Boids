@@ -1,25 +1,22 @@
-﻿using System.Drawing;
-using System.IO;
-using Unity.Burst;
+﻿using System.Runtime.CompilerServices;
 using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.Jobs;
+using UnityEngine;
+using Unity.Burst;
 
 [BurstCompile]
 public struct MoveJob : IJobParallelForTransform
 {
-    [ReadOnly] public NativeArray<Vector2> Accelerations;
+    [ReadOnly] public NativeArray<Vector2> Velocities;
     public NativeArray<Vector2> Positions;
-    public NativeArray<Vector2> Velocities;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Execute(int index, TransformAccess transform)
     {
-        Velocities[index] += Accelerations[index];
-        Positions[index] += Velocities[index];
+        var velocity = Velocities[index];
 
+        Positions[index] += velocity;
         transform.position = Positions[index];
-        transform.rotation = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 1) * Velocities[index].normalized);
+        transform.rotation = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 1) * velocity.normalized);
     }
 }
