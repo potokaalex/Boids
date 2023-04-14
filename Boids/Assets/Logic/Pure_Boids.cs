@@ -12,6 +12,8 @@ using Unity.Jobs;
 
 public class Pure_Boids : MonoBehaviour
 {
+    public Texture _boidTexture;
+
     [SerializeField] private GameObject _boidPrefab;
     [SerializeField] private int _numberOfBoids;
 
@@ -90,7 +92,6 @@ public class Pure_Boids : MonoBehaviour
         var accelerationJobHandle = accelerationJob.Schedule(_numberOfBoids, 0);
         var velocityJobHandle = velocityJob.Schedule(_numberOfBoids, 0, accelerationJobHandle);
         var moveJobHandle = moveJob.Schedule(_transforms, velocityJobHandle);
-
         moveJobHandle.Complete();
     }
 
