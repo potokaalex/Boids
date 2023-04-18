@@ -95,7 +95,7 @@ public class Pure_Boids : MonoBehaviour
         moveJobHandle.Complete();
     }
 
-    private void OnDestroy()
+    private void OnDestroy1()
     {
         _transforms.Dispose();
         _accelerations.Dispose();
