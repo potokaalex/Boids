@@ -1,32 +1,31 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
-using Unity.VisualScripting.Dependencies.NCalc;
-using UnityEditor;
-using UnityEditor.U2D.Path.GUIFramework;
 using UnityEngine;
 using UnityEngine.Jobs;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
-using Random = Unity.Mathematics.Random;
+using static UnityEditor.UIElements.CurveField;
 
 namespace BoidSimulation
 {
     public class Startup : MonoBehaviour
     {
+        public Sprite boidSprite;
+        public Material boidMaterial;
+
         [SerializeField] private SimulationPresetData _settings;
         [SerializeField] private SimulationLoop _simulationLoop;
         [SerializeField] private ControlPanel _controlPanel;
 
-        private DataProvider _dataProvider; 
+        private DataProvider _dataProvider;
 
         private void Start()
         {
             _dataProvider = new DataProvider(_settings);
-            var simulation = new Simulation(_simulationLoop, _dataProvider);
+            var simulation = new Simulation(_simulationLoop, _dataProvider, boidSprite, boidMaterial);
 
             _controlPanel.Initialize(_dataProvider);
         }
@@ -45,7 +44,7 @@ namespace BoidSimulation
         private SimulationData _simulationData;
         private BoidsData _boidsData;
 
-        public Simulation(SimulationLoop simulationLoop, DataProvider dataProvider)
+        public Simulation(SimulationLoop simulationLoop, DataProvider dataProvider, Sprite boidSprite, Material boidMaterial)
         {
             _simulationData = dataProvider.SimulationData;
             _boidsData = dataProvider.BoidsData;
@@ -53,6 +52,12 @@ namespace BoidSimulation
             simulationLoop.OnFixedUpdate += AccelerationUpdate;
             simulationLoop.OnFixedUpdate += VelocityUpdate;
             simulationLoop.OnFixedUpdate += MoveUpdate;
+            simulationLoop.OnUpdate += RendererUpdate;
+
+            //
+            pb = new MaterialPropertyBlock();
+
+            ri = RenderInfo.FromSprite(boidMaterial, boidSprite);
         }
 
         private void AccelerationUpdate(float deltaTime)// 20 times per sec
@@ -91,19 +96,63 @@ namespace BoidSimulation
 
         private void MoveUpdate(float deltaTime)// 60 times per sec
         {
-            var moveJob = new MoveJob()
+            for (var i = 0; i < _boidsData._activeBoids.Count; i++)
             {
-                Velocities = _boidsData.Velocities,
-                Positions = _boidsData.Positions,
-            };
+                var velss = _boidsData.Velocities;
 
-            moveJob.Schedule(_boidsData.Transforms).Complete();
+                var boid = _boidsData._activeBoids[i];
+
+                boid.Position += velss[i];
+                _boidsData.Positions[i] += velss[i];
+
+                _boidsData._activeBoids[i] = boid;
+            }
+
+        }
+
+        //
+        private static readonly int posDirPropertyId = Shader.PropertyToID("posDirBuffer");
+        private const int batchSize = 1000;
+
+        private readonly Vector4[] posDirArr = new Vector4[batchSize];
+        private MaterialPropertyBlock pb;
+
+        private RenderInfo ri;
+
+        private void RendererUpdate(float deltaTime)// 60 times per sec
+        {
+            for (var i = 0; i < batchSize; i++)
+            {
+                var boid = _boidsData._activeBoids[i];
+                //Debug.Log(boid.Position);
+                posDirArr[i] = new Vector4(boid.Position.x, boid.Position.y,
+                    Mathf.Cos(0) * 1, Mathf.Sin(0) * 1);
+            }
+
+            pb.SetVectorArray(posDirPropertyId, posDirArr);
+            Debug.Log("123");
+
+            Graphics.DrawMesh(ri.mesh, Vector3.zero, Quaternion.identity, ri.mat, 0);
+            Graphics.DrawMeshInstancedProcedural
+                (ri.mesh, 0, ri.mat, new Bounds(Vector3.zero, _simulationData.AreaSize), batchSize, pb, ShadowCastingMode.Off, false);
         }
     }
 
     public struct Boid
     {
-        public Transform Transform;
+        //public Transform Transform;
+        public Vector2 Position;
         public Vector2 Velocity;
+    }
+
+    [BurstCompile]
+    public struct RendererJob : IJobParallelForTransform
+    {
+        public NativeArray<Vector2> Positions;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Execute(int index, TransformAccess transform)
+        {
+        }
     }
 }

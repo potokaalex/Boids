@@ -18,14 +18,14 @@ namespace BoidSimulation
             if (_reserve.Count < 1)
                 return _factory.Create();
 
-            _reserve.Peek().Transform.gameObject.SetActive(true);
+            //_reserve.Peek().Transform.gameObject.SetActive(true);
 
             return _reserve.Pop();
         }
 
         public void Return(Boid boid)
         {
-            boid.Transform.gameObject.SetActive(false);
+            //boid.Transform.gameObject.SetActive(false);
 
             _reserve.Push(boid);
         }

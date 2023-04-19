@@ -16,7 +16,7 @@ public struct MoveJob : IJobParallelForTransform
         var velocity = Velocities[index];
 
         Positions[index] += velocity;
-        transform.position = Positions[index];
-        transform.rotation = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 1) * velocity.normalized);
+        //transform.position = Positions[index];
+        //transform.rotation = Quaternion.LookRotation(Vector3.forward, Quaternion.Euler(0, 0, 1) * velocity.normalized);
     }
 }

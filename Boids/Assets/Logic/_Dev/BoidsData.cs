@@ -18,7 +18,7 @@ namespace BoidSimulation
         public NativeArray<Vector2> Accelerations2;
 
         //public List<Queue<Vector2>> History;//castom native array ?!?!
-        private List<Boid> _activeBoids;
+        public List<Boid> _activeBoids;
         private BoidPool _boidPool;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,9 +70,9 @@ namespace BoidSimulation
 
             for (var i = 0; i < _activeBoids.Count; i++)
             {
-                transforms[i] = _activeBoids[i].Transform;
+                //transforms[i] = _activeBoids[i].Transform;
                 velocities[i] = _activeBoids[i].Velocity;
-                positions[i] = _activeBoids[i].Transform.position;
+                positions[i] = _activeBoids[i].Position;
             }
 
             Transforms = new(transforms);
