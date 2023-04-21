@@ -112,7 +112,7 @@ namespace BoidSimulation
 
         //
         private static readonly int posDirPropertyId = Shader.PropertyToID("posDirBuffer");
-        private const int batchSize = 1000;
+        private const int batchSize = 1023;
 
         private readonly Vector4[] posDirArr = new Vector4[batchSize];
         private MaterialPropertyBlock pb;
@@ -125,14 +125,13 @@ namespace BoidSimulation
             {
                 var boid = _boidsData._activeBoids[i];
                 //Debug.Log(boid.Position);
-                posDirArr[i] = new Vector4(boid.Position.x, boid.Position.y,
-                    Mathf.Cos(0) * 1, Mathf.Sin(0) * 1);
+                posDirArr[i] = new Vector4(boid.Position.x, boid.Position.y, 0, 0);
             }
 
             pb.SetVectorArray(posDirPropertyId, posDirArr);
-            Debug.Log("123");
-
-            Graphics.DrawMesh(ri.mesh, Vector3.zero, Quaternion.identity, ri.mat, 0);
+            //ComputeBuffer
+            //Graphics.DrawMesh(
+            //Graphics.DrawMesh(ri.mesh, Vector3.zero, Quaternion.identity, ri.mat, 0);
             Graphics.DrawMeshInstancedProcedural
                 (ri.mesh, 0, ri.mat, new Bounds(Vector3.zero, _simulationData.AreaSize), batchSize, pb, ShadowCastingMode.Off, false);
         }

@@ -7,7 +7,7 @@ namespace Statistics
 {
     public class FrameStatisticsDisplay : MonoBehaviour
     {
-        private const int DisplayFrequency = 10; //1 displaying call for 10 FixedUpdate calls
+        private const int DisplayFrequency = 25; //1 displaying call for 25 FixedUpdate calls
 
         [SerializeField] private TextMeshProUGUI _averageFrameTime;
         [SerializeField] private TextMeshProUGUI _averageFPS;
@@ -34,9 +34,9 @@ namespace Statistics
         }
 
         private void DisplayFPS(TextMeshProUGUI text, float value)
-            => text.text = $"FPS: {Math.Round(value, 1)}";
+            => text.text = $"{Math.Round(value, 1)}";
 
         private void DisplayFrameTime(TextMeshProUGUI text, float value)
-            => text.text = $"FrameTime: {Math.Round(value * 1000, 1)} ms";
+            => text.text = $"{Math.Round(value * 1000, 1)}";
     }
 }

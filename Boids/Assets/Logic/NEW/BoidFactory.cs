@@ -41,8 +41,8 @@ namespace BoidSimulation
         {
             return new()
             {
-                x = _random.NextFloat(0, 100),
-                y = _random.NextFloat(0, 100),
+                x = _random.NextFloat(0, _areaSize.x + 1),
+                y = _random.NextFloat(0, _areaSize.y + 1),
                 z = 0
             };
         }
