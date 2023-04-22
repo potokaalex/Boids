@@ -8,11 +8,11 @@ using Unity.Jobs;
 [BurstCompile]
 public struct VelocityJob : IJobParallelFor
 {
-    [ReadOnly] public NativeArray<Vector2> Accelerations;
-    [ReadOnly] public NativeArray<Vector2> Positions;
-    public NativeArray<Vector2> Velocities;
+    [ReadOnly] public NativeArray<float2> Accelerations;
+    [ReadOnly] public NativeArray<float2> Positions;
+    public NativeArray<float2> Velocities;
 
-    public Vector2 AreaSize;
+    public Vector2 AreaSize; // Vector2 !
     public float BorderSightDistance;
     public float BorderAvoidanceFactor;
 
@@ -23,7 +23,7 @@ public struct VelocityJob : IJobParallelFor
     public void Execute(int index)
         => Velocities[index] = GetVelocity(Velocities[index] + Accelerations[index], Positions[index]);
 
-    private Vector2 GetVelocity(Vector2 velocity, Vector2 position)
+    private float2 GetVelocity(float2 velocity, float2 position)
     {
         if (position.x < BorderSightDistance)
             velocity.x += BorderAvoidanceFactor;
@@ -37,7 +37,7 @@ public struct VelocityJob : IJobParallelFor
         if (position.y > (AreaSize.y - BorderSightDistance))
             velocity.y -= BorderAvoidanceFactor;
 
-        return velocity.normalized * math.clamp
-            (velocity.magnitude, MinimumVelocity, MaximumVelocity);
+        return math.normalize(velocity) * math.clamp
+            (((Vector2)velocity).magnitude, MinimumVelocity, MaximumVelocity);//math.abs == Vector.magnitude ? 
     }
 }

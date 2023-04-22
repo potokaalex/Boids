@@ -352,11 +352,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 468804263}
-  - component: {fileID: 468804264}
   - component: {fileID: 468804267}
   - component: {fileID: 468804266}
   - component: {fileID: 468804265}
-  - component: {fileID: 468804268}
   m_Layer: 0
   m_Name: Startup
   m_TagString: Untagged
@@ -379,31 +377,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &468804264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 468804261}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2ff1a75ca54f2146b08785970194cbc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _boidTexture: {fileID: 2800000, guid: c6965c02b89071e4584b20d8d723f981, type: 3}
-  _boidPrefab: {fileID: 3651439099085944712, guid: a524962e75ada0444ae080885dadefc5, type: 3}
-  _numberOfBoids: 0
-  AreaSize: {x: 1920, y: 1080}
-  BorderSightDistance: 200
-  BorderAvoidanceFactor: 2
-  MaximumVelocity: 20
-  MinimumVelocity: 10
-  AvoidanceDistance: 30
-  SightDistance: 75
-  CohesionFactor: 2
-  SeparationFactor: 5
-  AlignmentFactor: 1
 --- !u!114 &468804265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -416,8 +389,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad04f14a78012434f848b64ec313e226, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  mat: {fileID: 2100000, guid: cc5deca423a767a4fb6255f39f3984f7, type: 2}
+  mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 3}
+  mat: {fileID: 0}
   texture: {fileID: 2800000, guid: c6965c02b89071e4584b20d8d723f981, type: 3}
 --- !u!114 &468804266
 MonoBehaviour:
@@ -456,25 +429,9 @@ MonoBehaviour:
     CohesionFactor: 2
     SeparationFactor: 5
     AlignmentFactor: 1
-    NumberOfBoids: 10
+    NumberOfBoids: 1023
   _simulationLoop: {fileID: 468804266}
   _controlPanel: {fileID: 1007211832}
---- !u!114 &468804268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 468804261}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0aca39634f230124f83e6d45457aace3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  instanceCount: 1000
-  instanceMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  instanceMaterial: {fileID: 2100000, guid: cc5deca423a767a4fb6255f39f3984f7, type: 2}
-  subMeshIndex: 0
 --- !u!114 &650880141 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4343181709860100936, guid: 780dd53da7ab89b42baf1b1747c74f07, type: 3}
@@ -1141,7 +1098,7 @@ Camera:
   far clip plane: 10
   field of view: 60
   orthographic: 1
-  orthographic size: 500
+  orthographic size: 600
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2

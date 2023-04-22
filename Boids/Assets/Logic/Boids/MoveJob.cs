@@ -1,17 +1,18 @@
 ﻿using System.Runtime.CompilerServices;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Jobs;
-using UnityEngine;
 using Unity.Burst;
+using Unity.Jobs;
 
 [BurstCompile]
-public struct MoveJob : IJobParallelForTransform
+public struct MoveJob : IJobParallelFor
 {
-    [ReadOnly] public NativeArray<Vector2> Velocities;
-    public NativeArray<Vector2> Positions;
+    [ReadOnly] public NativeArray<float2> Velocities;
+    public NativeArray<float2> Positions;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Execute(int index, TransformAccess transform)
+    public void Execute(int index)
     {
         var velocity = Velocities[index];
 

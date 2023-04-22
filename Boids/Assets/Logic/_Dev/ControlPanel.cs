@@ -17,7 +17,7 @@ namespace BoidSimulation
         [SerializeField] private Button TracePaths;
 
         private SimulationData _simulationData;
-        private BoidsData _boidsData;
+        private BoidsDataProvider _boidsData;
         private DataProvider _dataProvider;
 
         public void Initialize(DataProvider dataProvider)
@@ -31,7 +31,7 @@ namespace BoidSimulation
             AlignmentFactor.ChangeValue(_simulationData.AlignmentFactor);
             AvoidanceDistance.ChangeValue(_simulationData.AvoidanceDistance);
             SightDistance.ChangeValue(_simulationData.SightDistance);
-            NumberOfBoids.ChangeValue(_boidsData.Transforms.length);
+            NumberOfBoids.ChangeValue(_boidsData.GetInstanceCount());
 
             CohesionFactor.OnValueChanged += SetCohesionFactor;
             SeparationFactor.OnValueChanged += SetSeparationFactor;
@@ -60,7 +60,7 @@ namespace BoidSimulation
             => _simulationData.SightDistance = value;
 
         private void ChangeNumberOfBoids(float newValue)
-            => _boidsData.ChangeNumberOfBoids((int)newValue);
+            => _boidsData.SetInstanceCount((int)newValue);
 
         private void SimulationReset()
             => _dataProvider.Reset();

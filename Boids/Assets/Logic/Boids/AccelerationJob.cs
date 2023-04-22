@@ -1,15 +1,16 @@
 ﻿using System.Runtime.CompilerServices;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Burst;
-using UnityEngine;
 using Unity.Jobs;
+using UnityEngine;
 
-[BurstCompile]
+[BurstCompile(FloatPrecision.Standard, FloatMode.Default)]
 public struct AccelerationJob : IJobParallelFor
 {
-    [ReadOnly] public NativeArray<Vector2> Positions;
-    [ReadOnly] public NativeArray<Vector2> Velocities;
-    public NativeArray<Vector2> Accelerations;
+    [ReadOnly] public NativeArray<float2> Positions;
+    [ReadOnly] public NativeArray<float2> Velocities;
+    [WriteOnly] public NativeArray<float2> Accelerations;
 
     public float AvoidanceDistance;
     public float SightDistance;
@@ -18,15 +19,15 @@ public struct AccelerationJob : IJobParallelFor
     public float SeparationFactor;
     public float AlignmentFactor;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Execute(int index)
         => Accelerations[index] = GetAcceleration(index);
 
-    private Vector2 GetAcceleration(int index)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private float2 GetAcceleration(int index)
     {
-        var averagePosition = Vector2.zero;
-        var averageVelocity = Vector2.zero;
-        var avarageDirection = Vector2.zero;
+        var averagePosition = float2.zero;
+        var averageVelocity = float2.zero;
+        var avarageDirection = float2.zero;
         var targetPosition = Positions[index];
         var numberOfNeighbors = 0;
 
@@ -37,7 +38,7 @@ public struct AccelerationJob : IJobParallelFor
 
             var otherPosition = Positions[i];
             var otherVelocity = Velocities[i];
-            var distance = Vector2.Distance(targetPosition, otherPosition);
+            var distance = math.distance(targetPosition, otherPosition);
 
             if (distance < SightDistance)
             {

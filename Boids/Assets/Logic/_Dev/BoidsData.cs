@@ -1,84 +1,115 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Collections.Generic;
+
 using Unity.Collections;
-using UnityEngine.Jobs;
-using UnityEngine;
+
 using System;
+
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
+
 
 namespace BoidSimulation
 {
-    public class BoidsData : IDisposable
+    public class BoidsDataProvider : IDisposable
     {
-        public const int HistorySize = 100;
+        public NativeArray<float2> Positions;
+        public NativeArray<float2> Velocities;
+        public NativeArray<float2> Accelerations;
+        public BoidsHistory BoidsHistory;
 
-        public TransformAccessArray Transforms;
-        public NativeArray<Vector2> Positions;
-        public NativeArray<Vector2> Velocities;
-        public NativeArray<Vector2> Accelerations;
-        public NativeArray<Vector2> Accelerations2;
+        private int _primaryInstanceCount;
+        private int _currentInstanceCount;
 
-        //public List<Queue<Vector2>> History;//castom native array ?!?!
-        public List<Boid> _activeBoids;
-        private BoidPool _boidPool;
+        private BoidFactory _factory;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BoidsData(BoidPool pool, int initialQuantity)
+        public BoidsDataProvider(BoidFactory factory, int instanceCount)
         {
-            _activeBoids = new(initialQuantity);
-            _boidPool = pool;
+            _factory = factory;
+            _primaryInstanceCount = instanceCount;
 
-            CalculateActiveBoids(initialQuantity);
-            CalculateBoidsArrays();
+            Initialize(instanceCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ChangeNumberOfBoids(int newValue)
+        public int GetInstanceCount()
+            => _currentInstanceCount;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetInstanceCount(int value)
         {
-            if (newValue == Transforms.length)
+            if (value == _currentInstanceCount)
                 return;
 
             Dispose();
-            CalculateActiveBoids(newValue);
-            CalculateBoidsArrays();
+            Initialize(value);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+            => SetInstanceCount(_primaryInstanceCount);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            Transforms.Dispose();
             Accelerations.Dispose();
             Velocities.Dispose();
             Positions.Dispose();
+            BoidsHistory.Dispose();
         }
 
-        private void CalculateActiveBoids(int activeBoidsCount)
+        private void Initialize(int instanceCount)
         {
-            foreach (var boid in _activeBoids)
-                _boidPool.Return(boid);
+            var velocities = new float2[instanceCount];
+            var positions = new float2[instanceCount];
 
-            _activeBoids.Clear();
-
-            for (var i = 0; i < activeBoidsCount; i++)
-                _activeBoids.Add(_boidPool.Rent());
-        }
-
-        private void CalculateBoidsArrays()
-        {
-            var transforms = new Transform[_activeBoids.Count];
-            var velocities = new Vector2[_activeBoids.Count];
-            var positions = new Vector2[_activeBoids.Count];
-
-            for (var i = 0; i < _activeBoids.Count; i++)
+            for (var i = 0; i < instanceCount; i++)
             {
-                //transforms[i] = _activeBoids[i].Transform;
-                velocities[i] = _activeBoids[i].Velocity;
-                positions[i] = _activeBoids[i].Position;
+                var boid = _factory.Create();
+
+                velocities[i] = boid.Velocity;
+                positions[i] = boid.Position;
             }
 
-            Transforms = new(transforms);
-            Accelerations = new(_activeBoids.Count, Allocator.Persistent);
             Velocities = new(velocities, Allocator.Persistent);
             Positions = new(positions, Allocator.Persistent);
+            Accelerations = new(instanceCount, Allocator.Persistent);
+            BoidsHistory = new(instanceCount);
+            _currentInstanceCount = instanceCount;
         }
+    }
+}
+
+public struct BoidsHistory : IDisposable
+{
+    private const int HistorySize = 100;
+    private UnsafeList<UnsafeRingQueue<float2>> _positionHistory;
+
+    public BoidsHistory(int boidsCount)
+    {
+        _positionHistory = new(boidsCount, Allocator.Persistent);
+
+        for (var i = 0; i < _positionHistory.Length; i++)
+            _positionHistory[i] = new(HistorySize, Allocator.Persistent);
+    }
+
+    public UnsafeRingQueue<float2> GetPositions(int boidIndex)
+        => _positionHistory[boidIndex];
+
+    public void SetPosition(int boidIndex, float2 position)
+    {
+        if (_positionHistory[boidIndex].TryEnqueue(position))
+            return;
+
+        _positionHistory[boidIndex].Dequeue();
+        _positionHistory[boidIndex].Enqueue(position);
+    }
+
+    public void Dispose()
+    {
+        for (var i = 0; i < _positionHistory.Length; i++)
+            _positionHistory[i].Dispose();
+
+        _positionHistory.Dispose();
     }
 }

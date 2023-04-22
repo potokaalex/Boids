@@ -5,7 +5,7 @@ namespace BoidSimulation
     public class DataProvider
     {
         public SimulationData SimulationData;
-        public BoidsData BoidsData;
+        public BoidsDataProvider BoidsData;
 
         public DataProvider(SimulationPresetData presetData)
         {
@@ -24,9 +24,9 @@ namespace BoidSimulation
             };
 
             var factory = new BoidFactory
-                (presetData.BoidPrefab, SimulationData.AreaSize, SimulationData.MinimumVelocity, SimulationData.MaximumVelocity);
+                (SimulationData.AreaSize, SimulationData.MinimumVelocity, SimulationData.MaximumVelocity);
 
-            BoidsData = new(new(factory, presetData.NumberOfBoids), presetData.NumberOfBoids);
+            BoidsData = new(factory, presetData.NumberOfBoids);
         }
 
         public void Reset()

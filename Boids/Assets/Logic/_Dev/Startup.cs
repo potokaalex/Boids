@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -42,7 +43,7 @@ namespace BoidSimulation
     public class Simulation
     {
         private SimulationData _simulationData;
-        private BoidsData _boidsData;
+        private BoidsDataProvider _boidsData;
 
         public Simulation(SimulationLoop simulationLoop, DataProvider dataProvider, Sprite boidSprite, Material boidMaterial)
         {
@@ -74,7 +75,7 @@ namespace BoidSimulation
                 AlignmentFactor = _simulationData.AlignmentFactor,
             };
 
-            accelerationJob.Schedule(_boidsData.Transforms.length, 0).Complete();
+            accelerationJob.Schedule(_boidsData.GetInstanceCount(), 0).Complete();
         }
 
         private void VelocityUpdate(float deltaTime)// 60 times per sec ?
@@ -91,26 +92,20 @@ namespace BoidSimulation
                 MinimumVelocity = _simulationData.MinimumVelocity,
             };
 
-            velocityJob.Schedule(_boidsData.Transforms.length, 0).Complete();
+            velocityJob.Schedule(_boidsData.GetInstanceCount(), 0).Complete();
         }
 
         private void MoveUpdate(float deltaTime)// 60 times per sec
         {
-            for (var i = 0; i < _boidsData._activeBoids.Count; i++)
+            var moveJob = new MoveJob()
             {
-                var velss = _boidsData.Velocities;
+                Velocities = _boidsData.Velocities,
+                Positions = _boidsData.Positions
+            };
 
-                var boid = _boidsData._activeBoids[i];
-
-                boid.Position += velss[i];
-                _boidsData.Positions[i] += velss[i];
-
-                _boidsData._activeBoids[i] = boid;
-            }
-
+            moveJob.Schedule(_boidsData.GetInstanceCount(), 0).Complete();
         }
 
-        //
         private static readonly int posDirPropertyId = Shader.PropertyToID("posDirBuffer");
         private const int batchSize = 1023;
 
@@ -121,37 +116,33 @@ namespace BoidSimulation
 
         private void RendererUpdate(float deltaTime)// 60 times per sec
         {
-            for (var i = 0; i < batchSize; i++)
+            for (int done = 0; done < _boidsData.GetInstanceCount(); done += batchSize)
             {
-                var boid = _boidsData._activeBoids[i];
-                //Debug.Log(boid.Position);
-                posDirArr[i] = new Vector4(boid.Position.x, boid.Position.y, 0, 0);
-            }
+                int run = Mathf.Min(_boidsData.GetInstanceCount() - done, batchSize);
 
-            pb.SetVectorArray(posDirPropertyId, posDirArr);
-            //ComputeBuffer
-            //Graphics.DrawMesh(
-            //Graphics.DrawMesh(ri.mesh, Vector3.zero, Quaternion.identity, ri.mat, 0);
-            Graphics.DrawMeshInstancedProcedural
-                (ri.mesh, 0, ri.mat, new Bounds(Vector3.zero, _simulationData.AreaSize), batchSize, pb, ShadowCastingMode.Off, false);
+                for (var i = 0; i < run; i++)
+                {
+                    var position = _boidsData.Positions[done + i];
+
+                    posDirArr[i] = new Vector4(position.x, position.y, 0, 0);
+                }
+
+                pb.SetVectorArray(posDirPropertyId, posDirArr);
+                //Debug.Log("DRAW !");
+                Graphics.DrawMeshInstancedProcedural
+                    (ri.mesh, 0, ri.mat, new Bounds(Vector3.zero, _simulationData.AreaSize), run, pb, ShadowCastingMode.Off, false);
+            }
         }
     }
 
-    public struct Boid
-    {
-        //public Transform Transform;
-        public Vector2 Position;
-        public Vector2 Velocity;
-    }
-
     [BurstCompile]
-    public struct RendererJob : IJobParallelForTransform
+    public struct RendererJob : IJobParallelFor
     {
         public NativeArray<Vector2> Positions;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Execute(int index, TransformAccess transform)
+        public void Execute(int index)
         {
+
         }
     }
 }
