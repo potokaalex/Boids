@@ -1,14 +1,17 @@
+using Mono.Cecil.Cil;
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
-using static UnityEditor.UIElements.CurveField;
+//using static UnityEditor.UIElements.CurveField;
 
 namespace BoidSimulation
 {
@@ -43,7 +46,9 @@ namespace BoidSimulation
     public class Simulation
     {
         private SimulationData _simulationData;
-        private BoidsDataProvider _boidsData;
+        private BoidsData _boidsData;
+
+        private BoidsRenderer _spriteRenderer;
 
         public Simulation(SimulationLoop simulationLoop, DataProvider dataProvider, Sprite boidSprite, Material boidMaterial)
         {
@@ -56,9 +61,8 @@ namespace BoidSimulation
             simulationLoop.OnUpdate += RendererUpdate;
 
             //
-            pb = new MaterialPropertyBlock();
 
-            ri = RenderInfo.FromSprite(boidMaterial, boidSprite);
+            _spriteRenderer = new(boidSprite, boidMaterial);
         }
 
         private void AccelerationUpdate(float deltaTime)// 20 times per sec
@@ -106,43 +110,85 @@ namespace BoidSimulation
             moveJob.Schedule(_boidsData.GetInstanceCount(), 0).Complete();
         }
 
-        private static readonly int posDirPropertyId = Shader.PropertyToID("posDirBuffer");
-        private const int batchSize = 1023;
 
-        private readonly Vector4[] posDirArr = new Vector4[batchSize];
-        private MaterialPropertyBlock pb;
 
-        private RenderInfo ri;
+        private void RendererUpdate(float deltaTime)
+            => _spriteRenderer.Render(_boidsData.Positions, _boidsData.Positions, _boidsData.GetInstanceCount());
+    }
 
-        private void RendererUpdate(float deltaTime)// 60 times per sec
+    public class BoidsRenderer
+    {
+        private const string ShaderPropertyName = "posDirBuffer";
+        private const int BatchSize = 1023;
+
+        private readonly int _propertyId;
+        private MaterialPropertyBlock _propertyBlock;
+        private Material _material;
+        private Mesh _mesh;
+
+        private Vector4[] posDirBuffer;
+        private float2[] positionsBuffer;
+        private float2[] directionsBuffer;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BoidsRenderer(Sprite sprite, Material material)
         {
-            for (int done = 0; done < _boidsData.GetInstanceCount(); done += batchSize)
+            _propertyId = Shader.PropertyToID(ShaderPropertyName);
+            _propertyBlock = new();
+            _material = material;
+            _mesh = GetMesh(sprite);
+
+            posDirBuffer = new Vector4[BatchSize];
+            positionsBuffer = Array.Empty<float2>();
+            directionsBuffer = Array.Empty<float2>();
+        }
+
+        public void Render(NativeArray<float2> positions, NativeArray<float2> directions, int count)
+        {
+            Copy(positions, ref positionsBuffer);
+            Copy(directions, ref directionsBuffer);
+
+            Render(positionsBuffer, directionsBuffer, count);
+
+            void Copy(NativeArray<float2> src, ref float2[] dst)
             {
-                int run = Mathf.Min(_boidsData.GetInstanceCount() - done, batchSize);
+                if (dst.Length != src.Length)
+                    dst = new float2[count];
+
+                src.CopyTo(dst);
+            }
+        }
+
+        public void Render(float2[] positions, float2[] rotations, int count)
+        {
+            for (var done = 0; done < count; done += BatchSize)
+            {
+                var run = math.min(count - done, BatchSize);
 
                 for (var i = 0; i < run; i++)
                 {
-                    var position = _boidsData.Positions[done + i];
+                    var position = positions[i + done];
+                    var rotation = rotations[i + done];
 
-                    posDirArr[i] = new Vector4(position.x, position.y, 0, 0);
+                    posDirBuffer[i] = new(rotation.x, position.y, rotation.x, rotation.y);
                 }
 
-                pb.SetVectorArray(posDirPropertyId, posDirArr);
-                //Debug.Log("DRAW !");
+                _propertyBlock.SetVectorArray(_propertyId, posDirBuffer);
+
                 Graphics.DrawMeshInstancedProcedural
-                    (ri.mesh, 0, ri.mat, new Bounds(Vector3.zero, _simulationData.AreaSize), run, pb, ShadowCastingMode.Off, false);
+                    (_mesh, 0, _material, new Bounds(Vector3.zero, Vector3.one * float.MaxValue), run, _propertyBlock, ShadowCastingMode.Off, false);
             }
         }
-    }
 
-    [BurstCompile]
-    public struct RendererJob : IJobParallelFor
-    {
-        public NativeArray<Vector2> Positions;
-
-        public void Execute(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Mesh GetMesh(Sprite sprite)
         {
-
+            return new()
+            {
+                vertices = sprite.vertices.Select(v => (Vector3)v).ToArray(),
+                triangles = sprite.triangles.Select(t => (int)t).ToArray(),
+                uv = sprite.uv
+            };
         }
     }
 }

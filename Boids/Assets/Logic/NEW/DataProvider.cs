@@ -5,7 +5,7 @@ namespace BoidSimulation
     public class DataProvider
     {
         public SimulationData SimulationData;
-        public BoidsDataProvider BoidsData;
+        public BoidsData BoidsData;
 
         public DataProvider(SimulationPresetData presetData)
         {

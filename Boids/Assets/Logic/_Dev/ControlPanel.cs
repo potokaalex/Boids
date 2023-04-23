@@ -17,7 +17,7 @@ namespace BoidSimulation
         [SerializeField] private Button TracePaths;
 
         private SimulationData _simulationData;
-        private BoidsDataProvider _boidsData;
+        private BoidsData _boidsData;
         private DataProvider _dataProvider;
 
         public void Initialize(DataProvider dataProvider)

@@ -429,7 +429,7 @@ MonoBehaviour:
     CohesionFactor: 2
     SeparationFactor: 5
     AlignmentFactor: 1
-    NumberOfBoids: 1023
+    NumberOfBoids: 300
   _simulationLoop: {fileID: 468804266}
   _controlPanel: {fileID: 1007211832}
 --- !u!114 &650880141 stripped

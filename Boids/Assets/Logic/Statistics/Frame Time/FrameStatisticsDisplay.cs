@@ -37,6 +37,6 @@ namespace Statistics
             => text.text = $"{Math.Round(value, 1)}";
 
         private void DisplayFrameTime(TextMeshProUGUI text, float value)
-            => text.text = $"{Math.Round(value * 1000, 1)}";
+            => text.text = $"{Math.Round(value * 1000, 1)} ms";
     }
 }

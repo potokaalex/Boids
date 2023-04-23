@@ -1,16 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
-
 using Unity.Collections;
-
 using System;
-
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 
-
 namespace BoidSimulation
 {
-    public class BoidsDataProvider : IDisposable
+    public class BoidsData : IDisposable
     {
         public NativeArray<float2> Positions;
         public NativeArray<float2> Velocities;
@@ -23,7 +19,7 @@ namespace BoidSimulation
         private BoidFactory _factory;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BoidsDataProvider(BoidFactory factory, int instanceCount)
+        public BoidsData(BoidFactory factory, int instanceCount)
         {
             _factory = factory;
             _primaryInstanceCount = instanceCount;
@@ -78,38 +74,43 @@ namespace BoidSimulation
             _currentInstanceCount = instanceCount;
         }
     }
-}
 
-public struct BoidsHistory : IDisposable
-{
-    private const int HistorySize = 100;
-    private UnsafeList<UnsafeRingQueue<float2>> _positionHistory;
 
-    public BoidsHistory(int boidsCount)
+    public struct BoidsHistory : IDisposable
     {
-        _positionHistory = new(boidsCount, Allocator.Persistent);
+        private const int HistorySize = 100;
+        private UnsafeList<UnsafeRingQueue<float2>> _positionHistory;
 
-        for (var i = 0; i < _positionHistory.Length; i++)
-            _positionHistory[i] = new(HistorySize, Allocator.Persistent);
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BoidsHistory(int boidsCount)
+        {
+            _positionHistory = new(boidsCount, Allocator.Persistent);
 
-    public UnsafeRingQueue<float2> GetPositions(int boidIndex)
-        => _positionHistory[boidIndex];
+            for (var i = 0; i < _positionHistory.Length; i++)
+                _positionHistory[i] = new(HistorySize, Allocator.Persistent);
+        }
 
-    public void SetPosition(int boidIndex, float2 position)
-    {
-        if (_positionHistory[boidIndex].TryEnqueue(position))
-            return;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeRingQueue<float2> GetPositions(int boidIndex)
+            => _positionHistory[boidIndex];
 
-        _positionHistory[boidIndex].Dequeue();
-        _positionHistory[boidIndex].Enqueue(position);
-    }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetPosition(int boidIndex, float2 position)
+        {
+            if (_positionHistory[boidIndex].TryEnqueue(position))
+                return;
 
-    public void Dispose()
-    {
-        for (var i = 0; i < _positionHistory.Length; i++)
-            _positionHistory[i].Dispose();
+            _positionHistory[boidIndex].Dequeue();
+            _positionHistory[boidIndex].Enqueue(position);
+        }
 
-        _positionHistory.Dispose();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            for (var i = 0; i < _positionHistory.Length; i++)
+                _positionHistory[i].Dispose();
+
+            _positionHistory.Dispose();
+        }
     }
 }

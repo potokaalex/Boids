@@ -12,7 +12,7 @@ public struct VelocityJob : IJobParallelFor
     [ReadOnly] public NativeArray<float2> Positions;
     public NativeArray<float2> Velocities;
 
-    public Vector2 AreaSize; // Vector2 !
+    public float2 AreaSize; // Vector2 !
     public float BorderSightDistance;
     public float BorderAvoidanceFactor;
 
@@ -37,7 +37,7 @@ public struct VelocityJob : IJobParallelFor
         if (position.y > (AreaSize.y - BorderSightDistance))
             velocity.y -= BorderAvoidanceFactor;
 
-        return math.normalize(velocity) * math.clamp
-            (((Vector2)velocity).magnitude, MinimumVelocity, MaximumVelocity);//math.abs == Vector.magnitude ? 
+        return math.normalize(velocity) * math.clamp(
+            math.length(velocity), MinimumVelocity, MaximumVelocity);
     }
 }
