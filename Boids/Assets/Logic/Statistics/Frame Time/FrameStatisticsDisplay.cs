@@ -7,7 +7,7 @@ namespace Statistics
 {
     public class FrameStatisticsDisplay : MonoBehaviour
     {
-        private const int DisplayFrequency = 25; //1 displaying call for 25 FixedUpdate calls
+        private const int DisplayUpdateFactor = 25; //1 displaying call for 25 FixedUpdate calls
 
         [SerializeField] private TextMeshProUGUI _averageFrameTime;
         [SerializeField] private TextMeshProUGUI _averageFPS;
@@ -21,7 +21,7 @@ namespace Statistics
 
         private void FixedUpdate()
         {
-            if (_fixedUpdateCounter < DisplayFrequency)
+            if (_fixedUpdateCounter < DisplayUpdateFactor)
             {
                 _fixedUpdateCounter++;
                 return;
