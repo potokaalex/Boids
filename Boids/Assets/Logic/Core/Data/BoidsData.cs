@@ -8,8 +8,9 @@ namespace BoidSimulation.Data
 {
     public class BoidsData : IDisposable
     {
-        public Material Material;
-        public Sprite Sprite;
+        public Material PathsMaterial;
+        public Material BoidMaterial;
+        public Sprite BoidSprite;
 
         public NativeArray<float2> Positions;
         public NativeArray<float2> Velocities;
@@ -24,9 +25,11 @@ namespace BoidSimulation.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BoidsData(BoidFactory factory, BoidsDataPreset dataPreset)
         {
-            Material = dataPreset.Material;
-            Sprite = dataPreset.Sprite;
+            PathsMaterial = dataPreset.PathsMaterial;
+            BoidMaterial = dataPreset.BoidMaterial;
+            BoidSprite = dataPreset.BoidSprite;
             _factory = factory;
+            _dataPreset = dataPreset;
 
             InitializeArrays(0);
             SetInstanceCount(dataPreset.InstanceCount);
@@ -51,8 +54,8 @@ namespace BoidSimulation.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            Material = _dataPreset.Material;
-            Sprite = _dataPreset.Sprite;
+            BoidMaterial = _dataPreset.BoidMaterial;
+            BoidSprite = _dataPreset.BoidSprite;
 
             SetInstanceCount(_dataPreset.InstanceCount);
         }

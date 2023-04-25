@@ -9,8 +9,7 @@ Shader "Custom/DMIIShader"
     {
         Tags
         {
-            "Queue" = "Background"
-            "RenderType" = "Background"
+            "Queue" = "Transparent"
         }
         Cull Back
         ZWrite Off

@@ -1,23 +1,30 @@
 ﻿using Unity.Jobs;
 using UnityEngine.Jobs;
 using BoidSimulation.Data;
+using System;
+using TMPro;
 
 namespace BoidSimulation
 {
-    public class Simulation
+    public class Simulation : IDisposable
     {
+        private SimulationLoop _simulationLoop;
         private SimulationData _simulationData;
         private BoidsRenderer _spriteRenderer;
+        private PathsRenderer _pathsRenderer;
 
         public Simulation(SimulationLoop simulationLoop, SimulationData simulationData)
         {
+            _simulationLoop = simulationLoop;
             _simulationData = simulationData;
-            _spriteRenderer = new(_simulationData.BoidsData.Sprite, _simulationData.BoidsData.Material);
+            _spriteRenderer = new(_simulationData.BoidsData.BoidSprite, _simulationData.BoidsData.BoidMaterial);
+            _pathsRenderer = new(simulationData.BoidsData.PathsMaterial);
 
             simulationLoop.OnFixedUpdate += AccelerationUpdate;
             simulationLoop.OnFixedUpdate += VelocityUpdate;
             simulationLoop.OnFixedUpdate += MoveUpdate;
             simulationLoop.OnGraphicsUpdate += RendererUpdate;
+            simulationLoop.OnDispose += Dispose;
         }
 
         private void AccelerationUpdate(float deltaTime)
@@ -60,7 +67,8 @@ namespace BoidSimulation
             {
                 Velocities = _simulationData.BoidsData.Velocities,
                 Positions = _simulationData.BoidsData.Positions,
-                Rotations = _simulationData.BoidsData.Rotations
+                Rotations = _simulationData.BoidsData.Rotations,
+                BoidsHistory = _simulationData.BoidsData.BoidsHistory
             };
 
             moveJob.Schedule(_simulationData.BoidsData.GetInstanceCount(), 0).Complete();
@@ -68,8 +76,24 @@ namespace BoidSimulation
 
         private void RendererUpdate(float deltaTime)
         {
+            //UnityEngine.Debug.Log(_simulationData.BoidsData.BoidsHistory.GetPositions(0).GetCurrentLength());
+
+            //if (_simulationData.IsTracePaths)
+            _pathsRenderer.Render(_simulationData.BoidsData.BoidsHistory);
+
             _spriteRenderer.Render(
                 _simulationData.BoidsData.Positions, _simulationData.BoidsData.Rotations, _simulationData.BoidsData.GetInstanceCount());
+        }
+
+        public void Dispose()
+        {
+            _simulationLoop.OnFixedUpdate -= AccelerationUpdate;
+            _simulationLoop.OnFixedUpdate -= VelocityUpdate;
+            _simulationLoop.OnFixedUpdate -= MoveUpdate;
+            _simulationLoop.OnGraphicsUpdate -= RendererUpdate;
+            _simulationLoop.OnDispose -= Dispose;
+
+            _pathsRenderer.Dispose();
         }
     }
 }

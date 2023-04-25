@@ -22,12 +22,7 @@ namespace BoidSimulation
         {
             _simulationData = simulationData;
 
-            CohesionFactor.Initialize(this, _simulationData.CohesionFactor);
-            SeparationFactor.Initialize(this, _simulationData.SeparationFactor);
-            AlignmentFactor.Initialize(this, _simulationData.AlignmentFactor);
-            AvoidanceDistance.Initialize(this, _simulationData.AvoidanceDistance);
-            SightDistance.Initialize(this, _simulationData.SightDistance);
-            NumberOfBoids.Initialize(this, _simulationData.BoidsData.GetInstanceCount());
+            InitializeSliders();
 
             Reset.Initialize(this);
             TracePaths.Initialize(this);
@@ -52,9 +47,22 @@ namespace BoidSimulation
             => _simulationData.BoidsData.SetInstanceCount(value);
 
         public void SimulationReset()
-            => _simulationData.Reset();
+        {
+            _simulationData.Reset();
+            InitializeSliders();
+        }
 
         public void TracePathsToggle()
             => _simulationData.IsTracePaths = !_simulationData.IsTracePaths;
+
+        private void InitializeSliders()
+        {
+            CohesionFactor.Initialize(this, _simulationData.CohesionFactor);
+            SeparationFactor.Initialize(this, _simulationData.SeparationFactor);
+            AlignmentFactor.Initialize(this, _simulationData.AlignmentFactor);
+            AvoidanceDistance.Initialize(this, _simulationData.AvoidanceDistance);
+            SightDistance.Initialize(this, _simulationData.SightDistance);
+            NumberOfBoids.Initialize(this, _simulationData.BoidsData.GetInstanceCount());
+        }
     }
 }

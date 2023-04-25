@@ -473,9 +473,10 @@ MonoBehaviour:
     SeparationFactor: 5
     AlignmentFactor: 1
   _boidsSettings:
-    Material: {fileID: 2100000, guid: 17596edc48b0cd444bb023e2791a197e, type: 2}
-    Sprite: {fileID: 21300000, guid: c6965c02b89071e4584b20d8d723f981, type: 3}
-    InstanceCount: 10
+    PathsMaterial: {fileID: 2100000, guid: 14cbfbabd0abecb48af3fd6330070707, type: 2}
+    BoidMaterial: {fileID: 2100000, guid: 17596edc48b0cd444bb023e2791a197e, type: 2}
+    BoidSprite: {fileID: 21300000, guid: c6965c02b89071e4584b20d8d723f981, type: 3}
+    InstanceCount: 1
   _simulationLoop: {fileID: 468804266}
   _controlPanel: {fileID: 1007211832}
 --- !u!114 &468804268
@@ -487,12 +488,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 468804261}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5db5612cf3ec064880b6dfd2db2bdf9, type: 3}
+  m_Script: {fileID: 11500000, guid: d2bccb368822dd942abc72635911cf8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Angel: 0
-  sprite: {fileID: 21300000, guid: c6965c02b89071e4584b20d8d723f981, type: 3}
-  _material: {fileID: 2100000, guid: 17596edc48b0cd444bb023e2791a197e, type: 2}
+  IsReading: 0
 --- !u!114 &474160991 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5291967438960527906, guid: 3db450474537ca1488e830a2a7379c2c, type: 3}

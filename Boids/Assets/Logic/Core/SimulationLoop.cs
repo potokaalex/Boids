@@ -9,9 +9,8 @@ namespace BoidSimulation
 
         public event Action<float> OnPhysicsUpdate;
         public event Action<float> OnGraphicsUpdate;
-
         public event Action<float> OnFixedUpdate;//
-
+        public event Action OnDispose;
 
         private int _fixedUpdateCounter;
 
@@ -32,5 +31,8 @@ namespace BoidSimulation
 
             OnPhysicsUpdate?.Invoke(Time.fixedDeltaTime * PhysicsUpdateFactor);
         }
+
+        private void OnDisable()
+            => OnDispose?.Invoke();
     }
 }

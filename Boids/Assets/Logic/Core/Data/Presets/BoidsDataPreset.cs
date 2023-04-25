@@ -6,8 +6,9 @@ namespace BoidSimulation.Data
     [Serializable]
     public class BoidsDataPreset
     {
-        public Material Material;
-        public Sprite Sprite;
+        public Material PathsMaterial;
+        public Material BoidMaterial;
+        public Sprite BoidSprite;
         public int InstanceCount;
     }
 }

@@ -6,7 +6,7 @@ namespace Statistics
 {
     public class FrameTimeCounter
     {
-        private const int BufferSize = 10;
+        private const int BufferSize = 5;
 
         private Queue<float> _frameBuffer;
         private float _averageFrameTime;
