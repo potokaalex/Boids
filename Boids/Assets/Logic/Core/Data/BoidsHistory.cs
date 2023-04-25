@@ -2,9 +2,7 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using System;
-
-using UnityEngine;
-using UnityEngine.UIElements;
+using Extensions;
 
 namespace BoidSimulation.Data
 {

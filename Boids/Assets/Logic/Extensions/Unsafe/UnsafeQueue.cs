@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using System;
 
-namespace BoidSimulation.Data
+namespace Extensions
 {
     public unsafe struct UnsafeQueue<T> : IDisposable where T : unmanaged
     {
