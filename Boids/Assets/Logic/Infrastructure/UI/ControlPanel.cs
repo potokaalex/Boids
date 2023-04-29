@@ -14,18 +14,20 @@ namespace BoidSimulation
         [SerializeField] private NumberOfBoidsSlider NumberOfBoids;
 
         [SerializeField] private ResetButton Reset;
-        [SerializeField] private TracePathsToggle TracePaths;
+        [SerializeField] private PauseButton Pause;
 
         private SimulationData _simulationData;
+        private SimulationLoop _simulationLoop;
 
-        public void Initialize(SimulationData simulationData)
+        public void Initialize(SimulationLoop simulationLoop, SimulationData simulationData)
         {
             _simulationData = simulationData;
+            _simulationLoop = simulationLoop;
 
             InitializeSliders();
 
             Reset.Initialize(this);
-            TracePaths.Initialize(this);
+            Pause.Initialize(this);
         }
 
         public void SetCohesionFactor(float value)
@@ -46,14 +48,14 @@ namespace BoidSimulation
         public void SetNumberOfBoids(int value)
             => _simulationData.BoidsData.SetInstanceCount(value);
 
+        public void SimulationPause()
+            => _simulationLoop.IsPause = !_simulationLoop.IsPause;
+
         public void SimulationReset()
         {
             _simulationData.Reset();
             InitializeSliders();
         }
-
-        public void TracePathsToggle()
-            => _simulationData.IsTracePaths = !_simulationData.IsTracePaths;
 
         private void InitializeSliders()
         {

@@ -13,7 +13,6 @@ namespace BoidSimulation
         private float _maximumVelocity;
         private float _minimumVelocity;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BoidFactory(Vector2 areaSize, float maximumVelocity, float minimumVelocity)
         {
             _random = new((uint)DateTime.Now.Ticks);
@@ -22,7 +21,6 @@ namespace BoidSimulation
             _minimumVelocity = minimumVelocity;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public (Vector2 Position, Vector2 Velocity) Create()
         {
             return new()
@@ -32,7 +30,6 @@ namespace BoidSimulation
             };
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 GetRandomPosition()
         {
             return new()
@@ -42,7 +39,6 @@ namespace BoidSimulation
             };
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 GetRandomVelocity()
         {
             return new()

@@ -1,28 +1,64 @@
 ﻿using System.Runtime.CompilerServices;
-using Unity.Collections;
 using Unity.Mathematics;
-using Unity.Burst;
 using Unity.Jobs;
-using UnityEngine;
-using BoidSimulation.Data;
+using Extensions;
+using Unity.Burst;
 
-[BurstCompile]
+[BurstCompile(FloatPrecision.Low, FloatMode.Fast)]
 public struct MoveJob : IJobParallelFor
 {
-    [ReadOnly] public NativeArray<float2> Velocities;
-    public NativeArray<float2> Positions;
-    public NativeArray<float> Rotations;
-    public BoidsHistory BoidsHistory;
+    public UnsafeArray<float2> Accelerations;
+    public UnsafeArray<float2> Velocities;
+    public UnsafeArray<float2> Positions;
+    public UnsafeArray<float> Rotations;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float2 AreaSize;
+    public float BorderSightDistance;
+    public float BorderAvoidanceFactor;
+
+    public float MaximumVelocity;
+    public float MinimumVelocity;
+
     public void Execute(int index)
     {
-        var velocity = Velocities[index];
+        var velocity = GetVelocity(Velocities[index], Positions[index], Accelerations[index]);
 
+        Velocities[index] = velocity;
         Positions[index] += velocity;
-        Rotations[index] = Quaternion.LookRotation(
-            Vector3.forward, Quaternion.Euler(Vector3.forward) * ((Vector2)velocity).normalized).eulerAngles.z;
+        Rotations[index] = GetRotation(velocity);
+    }
 
-        BoidsHistory.AddPosition(index, Positions[index]);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private float2 GetVelocity(float2 velocity, float2 position, float2 acceleration)
+    {
+        var newVelocity = velocity + acceleration;
+
+        if (position.x < BorderSightDistance)
+            newVelocity.x += BorderAvoidanceFactor;
+
+        else if (position.x > (AreaSize.x - BorderSightDistance))
+            newVelocity.x -= BorderAvoidanceFactor;
+
+        if (position.y < BorderSightDistance)
+            newVelocity.y += BorderAvoidanceFactor;
+
+        else if (position.y > (AreaSize.y - BorderSightDistance))
+            newVelocity.y -= BorderAvoidanceFactor;
+
+        return math.normalize(newVelocity) *
+            math.clamp(math.length(newVelocity), MinimumVelocity, MaximumVelocity);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private float GetRotation(float2 velocity)
+    {
+        var angle = math.atan2(velocity.y, velocity.x);
+
+        if (angle > 0)
+            angle -= math.PI / 2;
+        else
+            angle += math.PI / 2 * 3;
+
+        return angle;
     }
 }

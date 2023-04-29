@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Unity.Mathematics;
-using UnityEngine;
+﻿using Unity.Mathematics;
 
 namespace BoidSimulation.Data
 {
@@ -23,11 +21,8 @@ namespace BoidSimulation.Data
         public float SeparationFactor;
         public float AlignmentFactor;
 
-        public bool IsTracePaths;
-
         private SimulationDataPreset _simulationDataPreset;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SimulationData(SimulationDataPreset simulationDataPreset, BoidsDataPreset boidsDataPreset)
         {
             Initialize(simulationDataPreset);
@@ -36,7 +31,6 @@ namespace BoidSimulation.Data
             BoidsData = new(new(AreaSize, MaximumVelocity, MinimumVelocity), boidsDataPreset);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
             Initialize(_simulationDataPreset);
@@ -45,8 +39,7 @@ namespace BoidSimulation.Data
 
         private void Initialize(SimulationDataPreset simulationDataPreset)
         {
-            AreaSize = new(Screen.width, Screen.height);
-
+            AreaSize = simulationDataPreset.AreaSize;
             MaximumVelocity = simulationDataPreset.MaximumVelocity;
             MinimumVelocity = simulationDataPreset.MinimumVelocity;
 
@@ -59,8 +52,6 @@ namespace BoidSimulation.Data
             CohesionFactor = simulationDataPreset.CohesionFactor;
             SeparationFactor = simulationDataPreset.SeparationFactor;
             AlignmentFactor = simulationDataPreset.AlignmentFactor;
-
-            IsTracePaths = false;
         }
     }
 }

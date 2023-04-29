@@ -16,7 +16,7 @@ namespace BoidSimulation
         {
             _simulationData = new(_simulationSettings, _boidsSettings);
 
-            _controlPanel.Initialize(_simulationData);
+            _controlPanel.Initialize(_simulationLoop,_simulationData);
 
             new Simulation(_simulationLoop, _simulationData);
         }

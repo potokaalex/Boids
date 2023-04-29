@@ -1,10 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-using UnityEngine.Rendering;
-using Unity.Collections;
+﻿using UnityEngine.Rendering;
 using Unity.Mathematics;
 using System.Linq;
 using UnityEngine;
-using System;
+using Extensions;
 
 namespace BoidSimulation
 {
@@ -19,37 +17,20 @@ namespace BoidSimulation
         private Mesh _mesh;
 
         private Vector4[] positionsAndRotationsBuffer;
-        private float2[] positions;
-        private float[] rotations;
+        private float2 _halfAreaSize;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BoidsRenderer(Sprite sprite, Material material)
+        public BoidsRenderer(Sprite sprite, Material material, float2 areaSize)
         {
             _propertyId = Shader.PropertyToID(ShaderPropertyName);
             _propertyBlock = new();
             _material = material;
             _mesh = GetMesh(sprite);
+            _halfAreaSize = areaSize / 2;
 
             positionsAndRotationsBuffer = new Vector4[BatchSize];
-            positions = Array.Empty<float2>();
-            rotations = Array.Empty<float>();
         }
 
-        public void Render(NativeArray<float2> nativePositions, NativeArray<float> nativeRotations, int count)
-        {
-            if (positions.Length != nativePositions.Length)
-                positions = new float2[count];
-
-            if (rotations.Length != nativeRotations.Length)
-                rotations = new float[count];
-
-            nativePositions.CopyTo(positions);
-            nativeRotations.CopyTo(rotations);
-
-            Render(positions, rotations, count);
-        }
-
-        public void Render(float2[] positions, float[] rotations, int count)
+        public void Render(UnsafeArray<float2> positions, UnsafeArray<float> rotations,int count)
         {
             for (var done = 0; done < count; done += BatchSize)
             {
@@ -57,7 +38,7 @@ namespace BoidSimulation
 
                 for (var i = 0; i < run; i++)
                 {
-                    var position = positions[i + done];
+                    var position = positions[i + done] - _halfAreaSize;
                     var rotation = rotations[i + done];
 
                     positionsAndRotationsBuffer[i] = new(position.x, position.y, rotation, rotation);
@@ -70,7 +51,6 @@ namespace BoidSimulation
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Mesh GetMesh(Sprite sprite)
         {
             return new()

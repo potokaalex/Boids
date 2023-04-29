@@ -1,16 +1,16 @@
 ﻿using System.Runtime.CompilerServices;
-using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
 using Unity.Jobs;
-using UnityEngine;
+using Extensions;
+using System;
 
-[BurstCompile(FloatPrecision.Standard, FloatMode.Default)]
+[BurstCompile(FloatPrecision.Low, FloatMode.Fast)]
 public struct AccelerationJob : IJobParallelFor
 {
-    [ReadOnly] public NativeArray<float2> Positions;
-    [ReadOnly] public NativeArray<float2> Velocities;
-    [WriteOnly] public NativeArray<float2> Accelerations;
+    public UnsafeArray<float2> Accelerations;
+    public UnsafeArray<float2> Velocities;
+    public UnsafeArray<float2> Positions;
 
     public float AvoidanceDistance;
     public float SightDistance;
@@ -20,10 +20,6 @@ public struct AccelerationJob : IJobParallelFor
     public float AlignmentFactor;
 
     public void Execute(int index)
-        => Accelerations[index] = GetAcceleration(index);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float2 GetAcceleration(int index)
     {
         var averagePosition = float2.zero;
         var averageVelocity = float2.zero;
@@ -31,19 +27,18 @@ public struct AccelerationJob : IJobParallelFor
         var targetPosition = Positions[index];
         var numberOfNeighbors = 0;
 
-        for (var i = 0; i < Positions.Length; i++)
+        for (var i = 0; i < Positions.GetLength(); i++)
         {
             if (index == i)
                 continue;
 
             var otherPosition = Positions[i];
-            var otherVelocity = Velocities[i];
-            var distance = math.distance(targetPosition, otherPosition);
+            var distance = GetDistance(targetPosition, otherPosition);
 
             if (distance < SightDistance)
             {
                 averagePosition += otherPosition;
-                averageVelocity += otherVelocity;
+                averageVelocity += Velocities[i];
                 numberOfNeighbors += 1;
             }
 
@@ -57,16 +52,25 @@ public struct AccelerationJob : IJobParallelFor
             averagePosition -= targetPosition;
         }
 
-        return GetNormalized(averagePosition) * CohesionFactor +
+        Accelerations[index] =
+            GetNormalized(averagePosition) * CohesionFactor +
             GetNormalized(avarageDirection) * SeparationFactor +
             GetNormalized(averageVelocity) * AlignmentFactor;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2 GetNormalized(Vector2 vector)
+    public float GetDistance(float2 a, float2 b)
     {
-        var magnitude = vector.magnitude;
+        var length = new float2(a.x - b.x, a.y - b.y);
 
-        return magnitude != 0 ? vector / magnitude : Vector2.zero;
+        return (float)Math.Sqrt(length.x * length.x + length.y * length.y);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float2 GetNormalized(float2 vector)
+    {
+        var magnitude = math.length(vector);
+
+        return magnitude == 0 ? float2.zero : vector / magnitude;
     }
 }

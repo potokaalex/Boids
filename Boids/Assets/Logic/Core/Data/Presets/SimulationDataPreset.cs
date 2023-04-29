@@ -1,10 +1,12 @@
-﻿using System;
+﻿using UnityEngine;
+using System;
 
 namespace BoidSimulation.Data
 {
     [Serializable]
     public class SimulationDataPreset
     {
+        public Vector2 AreaSize;
         public float BorderSightDistance;
         public float BorderAvoidanceFactor;
 

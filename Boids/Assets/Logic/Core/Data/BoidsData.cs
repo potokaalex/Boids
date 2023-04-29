@@ -2,30 +2,27 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using Extensions;
 using System;
 
 namespace BoidSimulation.Data
 {
     public class BoidsData : IDisposable
     {
-        public Material PathsMaterial;
         public Material BoidMaterial;
         public Sprite BoidSprite;
 
-        public NativeArray<float2> Positions;
-        public NativeArray<float2> Velocities;
-        public NativeArray<float2> Accelerations;
-        public NativeArray<float> Rotations;
-        public BoidsHistory BoidsHistory;
+        public UnsafeArray<float2> Positions;
+        public UnsafeArray<float2> Velocities;
+        public UnsafeArray<float2> Accelerations;
+        public UnsafeArray<float> Rotations;
 
         private BoidsDataPreset _dataPreset;
         private BoidFactory _factory;
         private int _instanceCount;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BoidsData(BoidFactory factory, BoidsDataPreset dataPreset)
         {
-            PathsMaterial = dataPreset.PathsMaterial;
             BoidMaterial = dataPreset.BoidMaterial;
             BoidSprite = dataPreset.BoidSprite;
             _factory = factory;
@@ -39,7 +36,6 @@ namespace BoidSimulation.Data
         public int GetInstanceCount()
             => _instanceCount;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetInstanceCount(int value)
         {
             if (value == _instanceCount)
@@ -51,7 +47,6 @@ namespace BoidSimulation.Data
             _instanceCount = value;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
             BoidMaterial = _dataPreset.BoidMaterial;
@@ -60,14 +55,12 @@ namespace BoidSimulation.Data
             SetInstanceCount(_dataPreset.InstanceCount);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
             Accelerations.Dispose();
             Velocities.Dispose();
             Positions.Dispose();
             Rotations.Dispose();
-            BoidsHistory.Dispose();
         }
 
         private void InitializeArrays(int instanceCount)
@@ -87,7 +80,6 @@ namespace BoidSimulation.Data
             Positions = new(positions, Allocator.Persistent);
             Rotations = new(instanceCount, Allocator.Persistent);
             Accelerations = new(instanceCount, Allocator.Persistent);
-            BoidsHistory = new(instanceCount);
         }
     }
 }

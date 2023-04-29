@@ -74,10 +74,10 @@ Shader "Custom/DMIIShader"
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             void setup() 
             {
-                float2 position = PositionsAndRotationsBuffer[unity_InstanceID].xy - _ScreenParams.xy / 2;
+                float2 position = PositionsAndRotationsBuffer[unity_InstanceID].xy;
                 float2 rotations = float2(
-                    cos(PositionsAndRotationsBuffer[unity_InstanceID].z * 0.0174533),
-                    sin(PositionsAndRotationsBuffer[unity_InstanceID].w * 0.0174533));
+                    cos(PositionsAndRotationsBuffer[unity_InstanceID].z),
+                    sin(PositionsAndRotationsBuffer[unity_InstanceID].w));
 
                 unity_ObjectToWorld = float4x4(
                     rotations.x, -rotations.y, 0, position.x,
