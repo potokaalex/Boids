@@ -1,3 +1,2 @@
-*.shader linguist-detectable=false
-*.cginc linguist-detectable=false
+
 Boids/Assets/TextMesh Pro/* linguist-vendored
