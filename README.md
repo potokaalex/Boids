@@ -17,4 +17,4 @@ The design was borrowed from Ben Eater: https://eater.net/boids
 See [here](https://github.com/Kot-Alenya/Boids/releases).
 
 ## License
-See [here](LICENSE.txt).
+See [here](LICENSE).
